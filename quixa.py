@@ -46,28 +46,34 @@ def home():
 def verifica_polizza():
     if collection is None:
         return jsonify({"errore": "Database non disponibile"}), 500
-        
-    data = request.get_json()
-    numero_polizza = data.get("numero_polizza", "")
-
-    if not numero_polizza:
-        return jsonify({"errore": "Parametro 'numero_polizza' mancante"}), 400
 
     try:
-        # Cerco polizza che inizia con le prime 3 cifre di numero_polizza
-        prefisso = numero_polizza[:3]
+        # Recupera tutte le polizze dal database
+        results = list(collection.find({}, {"_id": 0}))  # Escludo _id dalla risposta
 
-        result = collection.find_one({"numero_polizza": {"$regex": f"^{prefisso}"}})
+        if results:
+            # Crea lista di tutti i numeri polizza
+            numeri_polizza = [doc["numero_polizza"] for doc in results]
+            
+            # Crea messaggio formattato per il chatbot
+            messaggio_polizze = "Ecco tutti i numeri di polizza disponibili:\n\n"
+            for i, doc in enumerate(results, 1):
+                messaggio_polizze += f"{i}. Polizza: {doc['numero_polizza']}\n"
+                messaggio_polizze += f"   Utente: {doc['utente_id']}\n"
+                messaggio_polizze += f"   Stato: {doc.get('stato', 'attiva')}\n\n"
 
-        if result:
             return jsonify({
                 "esiste": True,
-                "numero_polizza": result["numero_polizza"],
-                "utente_id": result["utente_id"],
-                "stato": result.get("stato", "")
+                "totale_polizze": len(results),
+                "numeri_polizza": numeri_polizza,
+                "dettagli_polizze": results,
+                "messaggio": messaggio_polizze
             })
         else:
-            return jsonify({"esiste": False})
+            return jsonify({
+                "esiste": False,
+                "messaggio": "Nessuna polizza trovata nel database"
+            })
             
     except Exception as e:
         return jsonify({"errore": f"Errore durante la ricerca: {str(e)}"}), 500
