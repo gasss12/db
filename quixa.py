@@ -56,16 +56,19 @@ def verifica_polizza():
             numeri_polizza = [doc["numero_polizza"] for doc in results]
             
             # Crea messaggio formattato per il chatbot
-            messaggio_polizze = "Ecco tutti i numeri di polizza disponibili:\n\n"
+            messaggio_polizze = "Ecco tutte le polizze disponibili:\n\n"
             for i, doc in enumerate(results, 1):
                 messaggio_polizze += f"{i}. Polizza: {doc['numero_polizza']}\n"
                 messaggio_polizze += f"   Utente: {doc['utente_id']}\n"
-                messaggio_polizze += f"   Stato: {doc.get('stato', 'attiva')}\n\n"
+                messaggio_polizze += f"   Stato: {doc.get('stato', 'attiva')}\n"
+                messaggio_polizze += f"   Data creazione: {doc.get('data_creazione', 'N/A')}\n"
+                messaggio_polizze += f"   Data scadenza: {doc.get('data_scadenza', 'N/A')}\n\n"
 
             return jsonify({
                 "esiste": True,
                 "totale_polizze": len(results),
                 "numeri_polizza": numeri_polizza,
+                "polizze": results,
                 "messaggio": messaggio_polizze
             })
         else:
@@ -137,16 +140,19 @@ def verifica_polizza():
             numeri_polizza = [doc["numero_polizza"] for doc in results]
             
             # Crea messaggio formattato per il chatbot
-            messaggio_polizze = "Ecco tutti i numeri di polizza disponibili:\n\n"
+            messaggio_polizze = "Ecco tutte le polizze disponibili:\n\n"
             for i, doc in enumerate(results, 1):
                 messaggio_polizze += f"{i}. Polizza: {doc['numero_polizza']}\n"
                 messaggio_polizze += f"   Utente: {doc['utente_id']}\n"
-                messaggio_polizze += f"   Stato: {doc.get('stato', 'attiva')}\n\n"
+                messaggio_polizze += f"   Stato: {doc.get('stato', 'attiva')}\n"
+                messaggio_polizze += f"   Data creazione: {doc.get('data_creazione', 'N/A')}\n"
+                messaggio_polizze += f"   Data scadenza: {doc.get('data_scadenza', 'N/A')}\n\n"
 
             return jsonify({
                 "esiste": True,
                 "totale_polizze": len(results),
                 "numeri_polizza": numeri_polizza,
+                "polizze": results,
                 "messaggio": messaggio_polizze
             })
         else:
