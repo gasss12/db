@@ -4,7 +4,7 @@ import pandas as pd
 app = Flask(__name__)
 
 # Carica il file Excel una sola volta all'avvio
-df = pd.read_excel("quixa_polizze.xlsx")  # Assicurati che il file sia nella stessa directory
+df = pd.read_csv("quixa_polizze.csv")  # Assicurati che il file sia nella stessa directory
 
 @app.route('/verifica_polizza', methods=['GET'])
 def verifica_polizza():
