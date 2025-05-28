@@ -84,6 +84,31 @@ def verifica_email():
             "esiste": False
         })
 
+@app.route('/verifica_tipoCliente', methods=['GET'])
+def verifica_tipo_cliente():
+    tipo_cliente = request.args.get('tipo_cliente')
+    if not tipo_cliente:
+        return jsonify({"errore": "Parametro 'tipo_cliente' mancante"}), 400
+
+    tipo_cliente_str = tipo_cliente.strip().upper()
+    validi = ["CLIENT", "PROSPECT", "PROSPECT RED"]
+
+    if tipo_cliente_str not in validi:
+        return jsonify({
+            "tipo_cliente": tipo_cliente,
+            "valido": False,
+            "messaggio": "Tipo cliente non valido"
+        })
+
+    # Cerca nel dataframe (attenzione alla gestione case e spazi)
+    df_tipo = df['tipo_cliente'].astype(str).str.upper().str.strip()
+
+    esiste = tipo_cliente_str in df_tipo.values
+
+    return jsonify({
+        "tipo_cliente": tipo_cliente,
+        "valido": esiste
+    })
 
 @app.route('/tutte_le_polizze', methods=['GET'])
 def tutte_le_polizze():
