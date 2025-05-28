@@ -57,6 +57,32 @@ def verifica_polizza():
             "esiste": False,
             "partner": is_partner  # Anche se non trovata, indichiamo se è partner
         })
+        
+@app.route('/verifica_email', methods=['GET'])
+def verifica_email():
+    email = request.args.get('email')
+    if not email:
+        return jsonify({"errore": "Parametro 'email' mancante"}), 400
+
+    email_str = email.strip().lower()
+    print(f"Cercando email: '{email_str}'")
+
+    if 'email' not in df.columns:
+        return jsonify({"errore": "La colonna 'email' non è presente nel CSV"}), 500
+
+    riga = df[df['email'].str.lower().str.strip() == email_str]
+
+    if not riga.empty:
+        record = riga.iloc[0].to_dict()
+        record["esiste"] = True
+        print(f"TROVATA email: {record}")
+        return jsonify(record)
+    else:
+        print(f"NON TROVATA email per: {email_str}")
+        return jsonify({
+            "email": email_str,
+            "esiste": False
+        })
 
 
 @app.route('/tutte_le_polizze', methods=['GET'])
