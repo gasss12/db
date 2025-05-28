@@ -22,7 +22,6 @@ print("Tipo di dato della colonna numero_polizza:", df['numero_polizza'].dtype)
 print("Campioni di numeri polizza:")
 print(df['numero_polizza'].head(10).tolist())
 print("==================")
-
 @app.route('/verifica_polizza', methods=['GET'])
 def verifica_polizza():
     numero = request.args.get('numero_polizza')
@@ -30,35 +29,35 @@ def verifica_polizza():
         return jsonify({"errore": "Parametro 'numero_polizza' mancante"}), 400
 
     print(f"Cercando numero: '{numero}' (tipo: {type(numero)})")
-    
+
     # Converti il numero in stringa e puliscilo
     numero_str = str(numero).strip()
-    
+
+    # Controlla se il numero inizia per "0085"
+    is_partner = numero_str.startswith("0085")
+    print(f"Inizia con '0085'? {'Sì' if is_partner else 'No'}")
+
     # Debug: vedi se esiste nel dataframe
     print(f"Numeri unici nel CSV: {df['numero_polizza'].nunique()}")
     print(f"Il numero cercato è nella lista? {numero_str in df['numero_polizza'].values}")
-    
+
     # Ricerca esatta
     riga = df[df['numero_polizza'] == numero_str]
 
     if not riga.empty:
         polizza = riga.iloc[0].to_dict()
         polizza["esiste"] = True
+        polizza["partner"] = is_partner  # Aggiunta la chiave "partner"
         print(f"TROVATA polizza: {polizza}")
         return jsonify(polizza)
     else:
         print(f"NON TROVATA polizza per: {numero_str}")
-        return jsonify({"numero_polizza": numero_str, "esiste": False})
+        return jsonify({
+            "numero_polizza": numero_str,
+            "esiste": False,
+            "partner": is_partner  # Anche se non trovata, indichiamo se è partner
+        })
 
-@app.route('/debug_csv', methods=['GET'])
-def debug_csv():
-    """Endpoint per vedere tutti i dati del CSV"""
-    return jsonify({
-        "colonne": df.columns.tolist(),
-        "righe_totali": len(df),
-        "primi_10_numeri": df['numero_polizza'].head(10).tolist(),
-        "tipo_colonna": str(df['numero_polizza'].dtype)
-    })
 
 @app.route('/tutte_le_polizze', methods=['GET'])
 def tutte_le_polizze():
