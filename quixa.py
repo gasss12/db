@@ -110,66 +110,39 @@ def verifica_tipo_cliente():
         "valido": esiste
     })
 @app.route('/verifica_tutto', methods=['GET'])
-def verifica_tutto():
-    numero = request.args.get('numero_polizza', '').strip()
-    email = request.args.get('email', '').strip().lower()
-    tipo_cliente = request.args.get('tipo_cliente', '').strip().upper()
+@app.route('/polizza_con_tipo_cliente', methods=['GET'])
+def polizza_con_tipo_cliente():
+    numero = request.args.get('numero_polizza')
+    
+    if not numero:
+        return jsonify({"errore": "Parametro 'numero_polizza' mancante"}), 400
 
-    risultato = {}
+    numero_str = str(numero).strip()
 
-    # Verifica numero_polizza
-    if numero:
-        is_partner = numero.startswith("0085")
-        riga_polizza = df[df['numero_polizza'] == numero]
-        if not riga_polizza.empty:
-            polizza = riga_polizza.iloc[0].to_dict()
-            polizza["esiste"] = True
-            polizza["partner"] = is_partner
-            risultato["verifica_polizza"] = polizza
-        else:
-            risultato["verifica_polizza"] = {
-                "numero_polizza": numero,
-                "esiste": False,
-                "partner": is_partner
-            }
+    # Verifica se il numero inizia con "0085" per identificare il partner
+    is_partner = numero_str.startswith("0085")
+
+    # Ricerca la polizza nel DataFrame
+    riga = df[df['numero_polizza'] == numero_str]
+
+    if not riga.empty:
+        # Recupera il tipo_cliente dalla stessa riga
+        tipo_cliente = riga.iloc[0].get('tipo_cliente', '').strip()
+
+        # Restituisce un dizionario con tutti i dati necessari
+        return jsonify({
+            "numero_polizza": numero_str,
+            "tipo_cliente": tipo_cliente,
+            "esiste": True,
+            "partner": is_partner
+        })
     else:
-        risultato["verifica_polizza"] = {"errore": "Parametro 'numero_polizza' mancante"}
-
-    # Verifica email
-    if email:
-        if 'email' in df.columns:
-            riga_email = df[df['email'].str.lower().str.strip() == email]
-            if not riga_email.empty:
-                rec = riga_email.iloc[0].to_dict()
-                rec["esiste"] = True
-                risultato["verifica_email"] = rec
-            else:
-                risultato["verifica_email"] = {"email": email, "esiste": False}
-        else:
-            risultato["verifica_email"] = {"errore": "Colonna 'email' non presente nel CSV"}
-    else:
-        risultato["verifica_email"] = {"errore": "Parametro 'email' mancante"}
-
-    # Verifica tipo_cliente
-    validi = ["CLIENT", "PROSPECT", "PROSPECT RED"]
-    if tipo_cliente:
-        if tipo_cliente not in validi:
-            risultato["verifica_tipoCliente"] = {
-                "tipo_cliente": tipo_cliente,
-                "valido": False,
-                "messaggio": "Tipo cliente non valido"
-            }
-        else:
-            df_tipo = df['tipo_cliente'].astype(str).str.upper().str.strip()
-            esiste = tipo_cliente in df_tipo.values
-            risultato["verifica_tipoCliente"] = {
-                "tipo_cliente": tipo_cliente,
-                "valido": esiste
-            }
-    else:
-        risultato["verifica_tipoCliente"] = {"errore": "Parametro 'tipo_cliente' mancante"}
-
-    return jsonify(risultato)
+        return jsonify({
+            "numero_polizza": numero_str,
+            "tipo_cliente": None,
+            "esiste": False,
+            "partner": is_partner
+        })
 
 @app.route('/tutte_le_polizze', methods=['GET'])
 def tutte_le_polizze():
